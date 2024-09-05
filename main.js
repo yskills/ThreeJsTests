@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { DXFLoader } from 'three-dxf-loader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { FontLoader } from 'three/examples/jsm/Addons.js';
+import DxfParser from 'dxf-parser';
 
 // Create a basic Three.js scene
 const scene = new THREE.Scene();
@@ -29,26 +31,50 @@ scene.add(cube);
 
 // Set up the DXF loader
 const loader = new DXFLoader();
+const fontLoader = new FontLoader();
+
 loader.setDefaultColor(0x000000); // Set default color for DXF entities
 loader.setConsumeUnits(true); // Use units from the DXF file
-
-// Load the DXF file
-loader.load('./Erdkabel/HDD_79-01.dxf', (data) => {
-    if (data && data.entity) {
-        const entity = data.entity;
-    
-        const boundingBox = new THREE.Box3();
-        boundingBox.setFromObject(entity);    
-        const center = new THREE.Vector3(-boundingBox.min.x, -boundingBox.min.y,0);
-        entity.position.set(center.x, center.y);
-        boundingBox.setFromObject(entity); 
-        camera.lookAt(center);
-        const boxHelper = new THREE.Box3Helper(boundingBox);
-        scene.add(data.entity, boxHelper);
-    }
-}, undefined, (error) => {
-    console.error('Error loading DXF file:', error);
+fontLoader.load("./fonts/helvetiker_regular.typeface.json",(font)=>{
+    loader.setFont(font);
 });
+// Load the DXF file
+
+fetch('./Erdkabel/240816_Testdaten_Muffenschächte_L_S.dxf')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.text();  // Get the file content as text
+  })
+  .then(data => {
+    console.log(data);  // Full string content of the DXF file
+
+    // Now you can parse the string with DxfParser
+    let parser = new DxfParser();
+    let dxf = parser.parseSync(data);
+    
+    console.log(dxf);  // Parsed DXF data
+  })
+  .catch(error => {
+    console.error('There has been a problem with your fetch operation:', error);
+  });
+// loader.load('./Erdkabel/240816_Testdaten_Muffenschächte_L_S.dxf', (data) => {
+//     if (data && data.entity) {
+//         const entity = data.entity;
+    
+//         const boundingBox = new THREE.Box3();
+//         boundingBox.setFromObject(entity);    
+//         const center = new THREE.Vector3(-boundingBox.min.x, -boundingBox.min.y,0);
+//         entity.position.set(center.x, center.y);
+//         boundingBox.setFromObject(entity); 
+//         camera.lookAt(center);
+//         const boxHelper = new THREE.Box3Helper(boundingBox);
+//         scene.add(data.entity, boxHelper);
+//     }
+// }, undefined, (error) => {
+//     console.error('Error loading DXF file:', error);
+// });
 
 // Position the camera
 camera.position.z = 5;
