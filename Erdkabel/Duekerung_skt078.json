@@ -1,0 +1,184 @@
+{
+    "title": "4687_3-4687_8",
+    "data": [
+        {
+            "loader": "f3d",
+            "url": "./assets/projects/4176/4176_3-4176_8.F3D",
+            "layer": "F3D"
+        },
+        {
+            "loader": "pro",
+            "url": "./assets/projects/4176/4176_3-4176_8.PRO",
+            "layer": "PRO"
+        },
+        {
+            "loader": "geojson",
+            "url": "./assets/projects/4176/Kabel3D_cut.geojson",
+            "layer": "Kabel",
+            "symbology": {
+                "type": "LineToTubes",
+                "color": "#31b2e0",
+                "thickness": 0.17
+            }
+        },
+        {
+            "loader": "geojson",
+            "url": "./assets/projects/4176/kabel_schutzstreifen_cut.geojson",
+            "layer": "Kabel_Schutzstreifen"
+        },
+        {
+            "loader": "dxf",
+            "url": "./assets/projects/Erdkabel/Dükerung_skt078.dxf",
+            "layer": "Dülerung"
+        }
+    ],
+    "tiles": [
+        {
+			"url": "/assets/projects/4176/las_dgm20_triangulate_deci/",
+            "extension": "ply",
+            "tileSize": 100,
+            "layer": "DGM",
+            "options": {
+                "textures": {
+                    "url": "./assets/projects/4176/oph/",
+                    "extension": "jpg"
+                }
+            }
+        },
+        {
+			"url": "/assets/projects/4176/las_filterField_noneGround_noTec",
+            "extension": "laz",
+            "tileSize": 100,
+            "layer": "LAS",
+			"options": {
+				"lodConfig": "auto",
+                "textures": {
+                    "url": "./assets/projects/4176/oph/",
+                    "extension": "jpg"
+                }
+			}
+        }
+    ],
+    "viewpoints": [
+        {
+            "name" : "Blick auf Masten",
+            "camposition" :{"x": 1480.61, "y":102.53, "z":192.90},
+            "lookat" :{"x":1471.44, "y": 87.77, "z": 194.83},
+            "srs" : "local",
+            "default" : true
+        },
+        {
+            "name" : "Bahntrasse",
+            "camposition" :{"x": 1376.09, "y":-115.24, "z":199.39},
+            "lookat" :{"x":1397.31, "y": -68.02, "z": 191.92} , 
+            "srs" : "local",
+            "default" : true
+        },
+        {
+            "name" : "Weg",
+            "camposition" :{"x": 903.61, "y":97.62, "z":188.35},
+            "lookat" :{"x":987.18, "y": 35.99, "z": 183.67},
+            "srs" : "local",
+            "default" : true
+        },
+        {
+            "name" : "Gebäude",
+            "camposition" :{"x": 871.79, "y":-29.37, "z":203.92},
+            "lookat" :{"x":921.58, "y": -59.44, "z": 182.90},
+            "srs" : "local",
+            "default" : true
+        },
+        {
+            "name" : "Laubbaum",
+            "camposition" :{"x": 856.20, "y":29.47, "z":186.77} ,
+            "lookat" :{"x":798.26, "y": 30.18, "z": 190.60} ,
+            "srs" : "local",
+            "default" : true
+        },
+        {
+            "name" : "Boden",
+            "camposition" :{"x": 393.69, "y":63.34, "z":188.07} ,
+            "lookat" :{"x":408.39, "y": 51.07, "z": 186.13} ,
+            "srs" : "local",
+            "default" : true
+        },
+        {
+            "name" : "Industrie",
+            "camposition" :{"x": 2.26, "y":-84.30, "z":198.41},
+            "lookat" :{"x":46.58, "y": -65.07, "z": 190.12},
+            "srs" : "local",
+            "default" : true
+        },
+        {
+            "name" : "Straße",
+            "camposition" :{"x": -19.57, "y":116.35, "z":206.59},
+            "lookat" :{"x":-23.39, "y": 71.25, "z": 196.17},
+            "srs" : "local",
+            "default" : true
+        },
+        {
+            "name" : "Erdkabel I",
+            "camposition" :{"x": 1583.21, "y":5.14, "z":189.35},
+            "lookat" :{"x":1598.49, "y": 23.88, "z": 192.57},
+            "srs" : "local",
+            "default" : true
+        },
+        {
+            "name" : "Erdkabel II",
+            "camposition" :{"x": 1421.48, "y":-72.60, "z":147.61},
+            "lookat" :{"x":1418.34, "y": -21.40, "z": 186.64},
+            "srs" : "local",
+            "default" : true
+        },
+        {
+            "name" : "Erdkabel III",
+            "camposition" :{"x": 1068.85, "y":-17.56, "z":178.55},
+            "lookat" :{"x":1043.66, "y": -20.26, "z": 182.02},
+            "srs" : "local",
+            "default" : true
+        },
+        {
+            "name" : "Erdkabel von oben",
+            "camposition" :{"x": 984.10, "y":-56.51, "z":234.05},
+            "lookat" :{"x":942.70, "y": 0.09, "z": 182.57} ,
+            "srs" : "local",
+            "default" : true
+        }
+    ],
+    "layer": {
+        "LAS" : {
+            "featureClass": "LASTile",
+            "style": {
+                "ColorRamp": {
+                    "colorStart": "#9C9C9C",
+                    "colorEnd": "#DCF5B8",
+                    "field": "height"
+                }
+            }
+        },
+        "DGM" : {
+            "featureClass": "DGMTile",
+            "style": {
+                "opacity": 0.5
+            }
+        },
+        "Kreuzung": {
+            "visible": false
+        },
+        "Geländesockel": {
+            "visible": false
+        },
+        "Gelände": {
+            "visible": false
+        },
+        "OBJPG": {
+            "visible": false
+        },
+        "Objektflächen": {
+            "visible": false
+        },
+        "OBJLI": {
+            "visible": false
+        }
+    }
+}
