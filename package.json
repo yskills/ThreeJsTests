@@ -15,8 +15,6 @@
   "dependencies": {
     "dxf-parser": "^1.1.2",
     "three": "^0.160.0",
-    "three-dxf-loader": "^5.1.0",
-    "three-dxf-viewer": "^1.0.33",
     "vite": "^5.3.5",
     "vite-plugin-mkcert": "^1.17.5"
   }
