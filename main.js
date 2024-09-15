@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { THREEDXFLoader } from './three-dxf-loader';
+import { DxfLoaderManager } from './three-dxf-loader';
 
 // Create a basic Three.js scene
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000); // Set background color
+scene.background = new THREE.Color(0x444444); // Set background color
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01,20000);
 const renderer = new THREE.WebGLRenderer();
@@ -27,13 +27,22 @@ scene.add(boxHelper);
 scene.add(cube);
 
 // Example usage:
-const loader = new THREEDXFLoader();
+const dxfManager = new DxfLoaderManager(scene);
+const filePaths = [
+    // "Erdkabel/7001_Trasse_UTM32_8 Stelling.dxf",
+    "Erdkabel/Alegro_7001TB067-VS 21.dxf",
+    // "Erdkabel/Dükerung_skt078.dxf",
+    // "Erdkabel/HDD_78-01.dxf",
+    // "Erdkabel/HDD_79-01.dxf",
+    // "Erdkabel/240816_Testdaten_Muffenschächte_L_S.dxf"
+];
 
-// Load from URL
+// Lade alle Dateien über den Manager
+await dxfManager.loadFiles(filePaths);
+dxfManager.addElementsToModel();
+dxfManager.moveElementsToZero();
+dxfManager.toggleBoxHelpers();
 
-await loader.loadFromUrl('Erdkabel/240816_Testdaten_Muffenschächte_L_S.dxf');
-loader.addToScene(scene);
-loader.addBoxHelper(scene);
 // Position the camera
 camera.position.z = 30;
 
