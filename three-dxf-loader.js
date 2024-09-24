@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { DXFLoader } from 'three-dxf-loader';
+import { DXFLoader } from './loader';
 import { FontLoader } from 'three/examples/jsm/Addons.js';
 
 class DxfElement {
@@ -49,6 +49,7 @@ class DxfElement {
         return new Promise((resolve, reject) => {
             this.loader.load(filePath, (data) => {
                 if (data && data.entity) {
+                    console.log(data);
                     scope.entity = data.entity;
                     resolve(data.entity);
                 } else {
