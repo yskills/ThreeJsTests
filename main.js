@@ -24,8 +24,8 @@ camera.lookAt(boundingBox.min);
 
 const boxHelper = new THREE.Box3Helper(boundingBox);
 
-scene.add(boxHelper);
-scene.add(cube);
+// scene.add(boxHelper);
+// scene.add(cube);
 
 // Example usage:
 
@@ -34,10 +34,10 @@ const dxfManager = new DxfLoaderManager(scene);
 const filePaths = [
     // "Erdkabel/7001_Trasse_UTM32_8 Stelling.dxf",
     // "Erdkabel/Alegro_7001TB067-VS 21.dxf",
-    // "Erdkabel/Dükerung_skt078.dxf",
+    "Erdkabel/Dükerung_skt078.dxf",
     // "Erdkabel/HDD_78-01.dxf",
     // "Erdkabel/HDD_79-01.dxf",
-    "Erdkabel/240816_Testdaten_Muffenschächte_L_S.dxf"
+    // "Erdkabel/240816_Testdaten_Muffenschächte_L_S.dxf"
 ];
 // parser.loadFromUrl(filePaths[0]);
 

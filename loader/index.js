@@ -776,6 +776,9 @@ class DXFLoader extends THREE.Loader {
       if (color == null || color === 0xffffff) {
         color = data.defaultColor // 0x000000
       }
+      else if(entity.color !== 0xffffff){
+        console.log("keine Farbe")
+      }
       return color
     }
 

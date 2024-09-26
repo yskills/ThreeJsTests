@@ -111,7 +111,7 @@ class DxfElement {
             this.entity.position.set(
                 this.entity.position.x - center.x,
                 this.entity.position.y - center.y,
-                this.entity.position.z + 100 - center.z
+                this.entity.position.z - center.z
             );
 
             // Recalculate the bounding box after the position change
