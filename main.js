@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { DxfLoaderManager } from './three-dxf-loader';
-import { DXFParser } from './dxf-parser';
+import DxfParser from 'dxf-json';
 
 // Create a basic Three.js scene
 const scene = new THREE.Scene();
@@ -28,19 +28,18 @@ const boxHelper = new THREE.Box3Helper(boundingBox);
 // scene.add(cube);
 
 // Example usage:
-
-const parser = new  DXFParser();
+const parser = new DxfParser();
 const dxfManager = new DxfLoaderManager(scene);
 const filePaths = [
-    // "Erdkabel/7001_Trasse_UTM32_8 Stelling.dxf",
-    // "Erdkabel/Alegro_7001TB067-VS 21.dxf",
-    "Erdkabel/Dükerung_skt078.dxf",
-    // "Erdkabel/HDD_78-01.dxf",
-    // "Erdkabel/HDD_79-01.dxf",
-    // "Erdkabel/240816_Testdaten_Muffenschächte_L_S.dxf"
+    // "Beispiele/7001_Trasse_UTM32_8 Stelling.dxf",
+    // "Beispiele/Alegro_7001TB067-VS 21.dxf",
+    // "Beispiele/Dükerung_skt078.dxf",
+    // "Beispiele/HDD_78-01.dxf",
+    // "Beispiele/HDD_79-01.dxf",
+    "Beispiele/240816_Testdaten_Muffenschächte_L_S.dxf"
 ];
-// parser.loadFromUrl(filePaths[0]);
-
+const parsedDxf = await parser.parseFromUrl(filePaths[0]);
+console.log(parsedDxf);
 // Lade alle Dateien über den Manager
 await dxfManager.loadFiles(filePaths);
 dxfManager.addElementsToModel();
