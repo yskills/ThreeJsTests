@@ -788,8 +788,8 @@ class DXFLoader extends THREE.Loader {
 
     function createLineTypeShaders(data) {
       var ltype, type
-      if (!data.tables || !data.tables.LTYPE) return
-      var ltypes = data.tables.LTYPE.entries;
+      if (!data.tables || !data.tables.lineType) return
+      var ltypes = data.tables.lineType.lineTypes
 
       for (type in ltypes) {
         ltype = ltypes[type]
