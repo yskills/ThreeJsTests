@@ -3,8 +3,7 @@ import { BufferGeometry, Color, Float32BufferAttribute, Vector3 } from 'three'
 import { Text } from 'troika-three-text'
 import { parseDxfMTextContent } from '@dxfom/mtext'
 import { Base64 } from 'js-base64'
-import {DxfParser as WrongParser} from 'dxf-parser'
-import DxfParser from 'dxf-json'
+import DxfParser from 'dxf-parser'
 import bSpline from './bspline'
 import ThreeEx from './extend'
 
@@ -174,9 +173,6 @@ class DXFLoader extends THREE.Loader {
   parse(text) {
     const parser = new DxfParser()
     var dxf = parser.parseSync(text)
-    const wrongParser = new WrongParser();
-    var wrongdxf = wrongParser.parseSync(text);
-    console.log(wrongdxf);
     return this.loadEntities(dxf, this)
   }
 
@@ -481,7 +477,6 @@ class DXFLoader extends THREE.Loader {
       if (entity.isPolyfaceMesh) {
         points = decomposePolyfaceMesh(entity, data)
       } else {
-        let zCoordinate = 0;
         for (i = 0; i < entity.vertices.length; i++) {
           if (entity.vertices[i].bulge) {
             bulge = entity.vertices[i].bulge
@@ -492,19 +487,11 @@ class DXFLoader extends THREE.Loader {
             points.push.apply(points, bulgePoints)
           } else {
             vertex = entity.vertices[i]
-            if (entity.elevation) {
-              zCoordinate = entity.elevation;
-            }
-            else if (vertex.z) {
-              zCoordinate = vertex.z;
-            }
-
-            points.push(new THREE.Vector3(vertex.x, vertex.y, zCoordinate))
+            points.push(new THREE.Vector3(vertex.x, vertex.y, 0))
           }
         }
 
         if (entity.shape) {
-
           points.push(points[0])
         }
       }
@@ -780,16 +767,13 @@ class DXFLoader extends THREE.Loader {
       if (color == null || color === 0xffffff) {
         color = data.defaultColor // 0x000000
       }
-      else if (entity.color !== 0xffffff) {
-        console.log("keine Farbe")
-      }
       return color
     }
 
     function createLineTypeShaders(data) {
       var ltype, type
-      if (!data.tables || !data.tables.LTYPE) return
-      var ltypes = data.tables.LTYPE.entries;
+      if (!data.tables || !data.tables.lineType) return
+      var ltypes = data.tables.lineType.lineTypes
 
       for (type in ltypes) {
         ltype = ltypes[type]
