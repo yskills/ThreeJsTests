@@ -175,7 +175,8 @@ class DXFLoader extends THREE.Loader {
     const parser = new DxfParser()
     var dxf = parser.parseSync(text)
     const wrongParser = new WrongParser();
-    var wrongdxf = WrongParser.parseSync(text);
+    var wrongdxf = wrongParser.parseSync(text);
+    console.log(wrongdxf);
     return this.loadEntities(dxf, this)
   }
 
