@@ -3,7 +3,7 @@ import { BufferGeometry, Color, Float32BufferAttribute, Vector3 } from 'three'
 import { Text } from 'troika-three-text'
 import { parseDxfMTextContent } from '@dxfom/mtext'
 import { Base64 } from 'js-base64'
-import {DxfParser as WrongParser} from 'dxf-parser'
+import { DxfParser as WrongParser } from 'dxf-parser'
 import DxfParser from 'dxf-json'
 import bSpline from './bspline'
 import ThreeEx from './extend'
@@ -173,11 +173,11 @@ class DXFLoader extends THREE.Loader {
 
   parse(text) {
     const parser = new DxfParser()
-    var dxf = parser.parseSync(text)
+    var newDxf = parser.parseSync(text)
     const wrongParser = new WrongParser();
-    var wrongdxf = wrongParser.parseSync(text);
-    console.log(wrongdxf);
-    return this.loadEntities(dxf, this)
+    var oldDxf = wrongParser.parseSync(text);
+    console.log(oldDxf);
+    return this.loadEntities(oldDxf,newDxf, this)
   }
 
   /**
@@ -185,7 +185,7 @@ class DXFLoader extends THREE.Loader {
    * @param {Object} font - a font loaded with THREE.FontLoader
    * @constructor
    */
-  loadEntities(data, options = this) {
+  loadEntities(data, newData, options = this) {
     const { font, enableLayer, defaultColor, enableUnitConversion } = options || {}
     /* Entity Type
             'POINT' | '3DFACE' | 'ARC' | 'ATTDEF' | 'CIRCLE' | 'DIMENSION' | 'MULTILEADER' | 'ELLIPSE' | 'INSERT' | 'LINE' | 
