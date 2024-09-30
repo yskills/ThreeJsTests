@@ -177,7 +177,7 @@ class DXFLoader extends THREE.Loader {
     const wrongParser = new WrongParser();
     var oldDxf = wrongParser.parseSync(text);
     console.log(oldDxf);
-    return this.loadEntities(oldDxf,newDxf, this)
+    return this.loadEntities(oldDxf, newDxf, this)
   }
 
   /**
@@ -191,10 +191,10 @@ class DXFLoader extends THREE.Loader {
             'POINT' | '3DFACE' | 'ARC' | 'ATTDEF' | 'CIRCLE' | 'DIMENSION' | 'MULTILEADER' | 'ELLIPSE' | 'INSERT' | 'LINE' | 
             'LWPOLYLINE' | 'MTEXT' | 'POLYLINE' | 'SOLID' | 'SPLINE' | 'TEXT' | 'VERTEX'
         */
-    function drawEntity(entity, data) {
+    function drawEntity(entity, newEntity, data) {
       var mesh
       if (entity.type === 'CIRCLE' || entity.type === 'ARC') {
-        mesh = drawArc(entity, data)
+        mesh = drawArc(entity, newEntity, data)
       } else if (
         entity.type === 'LWPOLYLINE' ||
         entity.type === 'LINE' ||
@@ -605,30 +605,60 @@ class DXFLoader extends THREE.Loader {
       return points
     }
 
-    function drawArc(entity, data) {
-      var startAngle, endAngle
+    function drawArc(entity, newEntity, data) {
+      let startAngle, endAngle;
+
+      // Define angles
       if (entity.type === 'CIRCLE') {
-        startAngle = entity.startAngle || 0
-        endAngle = startAngle + 2 * Math.PI
+        startAngle = entity.startAngle || 0;
+        endAngle = startAngle + 2 * Math.PI;
       } else {
-        startAngle = entity.startAngle
-        endAngle = entity.endAngle
+        startAngle = entity.startAngle;
+        endAngle = entity.endAngle;
       }
 
-      var curve = new THREE.ArcCurve(0, 0, entity.radius, startAngle, endAngle)
+      // Create the arc curve based on the circle's center and radius
+      const curve = new THREE.ArcCurve(0, 0, entity.radius, startAngle, endAngle);
+      const points = curve.getPoints(32);
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
-      var points = curve.getPoints(32)
-      var geometry = new THREE.BufferGeometry().setFromPoints(points)
+      // Create the material and the arc object
+      const material = new THREE.LineBasicMaterial({ color: getColor(entity, data) });
+      const arc = new THREE.Line(geometry, material);
+      // Position the arc correctly in 3D space
+      const center = new THREE.Vector3(entity.center.x, entity.center.y, entity.center.z);
 
-      var material = new THREE.LineBasicMaterial({ color: getColor(entity, data) })
+      // Adjust for extrusion vector
+      const extrusionVec = new THREE.Vector3(
+        newEntity.extrusionDirection.x,
+        newEntity.extrusionDirection.y,
+        newEntity.extrusionDirection.z
+      );
 
-      var arc = new THREE.Line(geometry, material)
-      arc.position.x = entity.center.x
-      arc.position.y = entity.center.y
-      arc.position.z = entity.center.z
+      // Check if the extrusion vector needs rotation
+      if (!extrusionVec.equals(new THREE.Vector3(0, 0, 1))) {
+        const defaultUp = new THREE.Vector3(0, 0, 1); // Default normal vector
+        const rotationAxis = new THREE.Vector3().crossVectors(defaultUp, extrusionVec).normalize(); // Axis of rotation
+        const angle = Math.acos(defaultUp.dot(extrusionVec)); // Angle of rotation
 
-      return arc
+        // Create a quaternion (rotation in 3D) based on axis and angle
+        const quaternion = new THREE.Quaternion().setFromAxisAngle(rotationAxis, angle);
+
+        // Apply the quaternion to the arc geometry
+        center.applyQuaternion(quaternion);
+        console.log(rotationAxis, angle, quaternion,)
+      }
+
+      // Set the final position of the arc
+      arc.position.x = center.x
+      arc.position.y = center.y
+      arc.position.z = center.z
+      //Extrusion set look at
+      const resVec = new Vector3().copy(extrusionVec).add(new Vector3().copy(arc.position));
+      arc.lookAt(resVec);
+      return arc;
     }
+
 
     function addTriangleFacingCamera(verts, p0, p1, p2) {
       // Calculate which direction the points are facing (clockwise or counter-clockwise)
@@ -987,11 +1017,12 @@ class DXFLoader extends THREE.Loader {
     data.faceColors = {}
     data.defaultColor = defaultColor
     // Create scene from dxf object (data)
-    var i, entity, obj
+    var i, entity, newEntity, obj
 
     for (i = 0; i < data.entities.length; i++) {
       entity = data.entities[i]
-      obj = drawEntity(entity, data)
+      newEntity = newData.entities[i]
+      obj = drawEntity(entity, newEntity, data)
 
       if (obj) {
         entities.push(obj)
