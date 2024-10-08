@@ -625,38 +625,49 @@ class DXFLoader extends THREE.Loader {
       // Create the material and the arc object
       const material = new THREE.LineBasicMaterial({ color: getColor(entity, data) });
       const arc = new THREE.Line(geometry, material);
-      // Position the arc correctly in 3D space
+
+      // Get the center of the arc
       const center = new THREE.Vector3(entity.center.x, entity.center.y, entity.center.z);
 
       // Adjust for extrusion vector
       const extrusionVec = new THREE.Vector3(
-        newEntity.extrusionDirection.x,
-        newEntity.extrusionDirection.y,
-        newEntity.extrusionDirection.z
-      );
+        roundNearZero(newEntity.extrusionDirection.x),
+        roundNearZero(newEntity.extrusionDirection.y),
+        roundNearZero(newEntity.extrusionDirection.z)
+      ).normalize();
 
       // Check if the extrusion vector needs rotation
       if (!extrusionVec.equals(new THREE.Vector3(0, 0, 1))) {
         const defaultUp = new THREE.Vector3(0, 0, 1); // Default normal vector
-        const rotationAxis = new THREE.Vector3().crossVectors(defaultUp, extrusionVec).normalize(); // Axis of rotation
-        const angle = Math.acos(defaultUp.dot(extrusionVec)); // Angle of rotation
+        let rotationAxis = new THREE.Vector3().crossVectors(defaultUp, extrusionVec).normalize(); // Axis of rotation
+        let angle = Math.acos(defaultUp.dot(extrusionVec)); // Angle of rotation
+
+        // Testing special cases
+        if (extrusionVec.x != 0) {
+          rotationAxis = new THREE.Vector3(0, 1, 0); // Example axis (adjust as needed)
+          angle = Math.PI / 2; // Example 90-degree rotation (adjust as needed)
+          console.log("Overriding axis to:", rotationAxis, "with angle:", angle);
+        }
 
         // Create a quaternion (rotation in 3D) based on axis and angle
         const quaternion = new THREE.Quaternion().setFromAxisAngle(rotationAxis, angle);
 
         // Apply the quaternion to the arc geometry
+        arc.applyQuaternion(quaternion);
+
+        // Apply the quaternion to the center position
         center.applyQuaternion(quaternion);
-        console.log(rotationAxis, angle, quaternion,)
       }
 
       // Set the final position of the arc
-      arc.position.x = center.x
-      arc.position.y = center.y
-      arc.position.z = center.z
-      //Extrusion set look at
-      const resVec = new Vector3().copy(extrusionVec).add(new Vector3().copy(arc.position));
-      arc.lookAt(resVec);
+      arc.position.set(center.x, center.y, center.z);
+
       return arc;
+    }
+
+
+    function roundNearZero(value, epsilon = 1e-10) {
+      return Math.abs(value) < epsilon ? 0 : value;
     }
 
 
@@ -809,9 +820,6 @@ class DXFLoader extends THREE.Loader {
 
       if (color == null || color === 0xffffff) {
         color = data.defaultColor // 0x000000
-      }
-      else if (entity.color !== 0xffffff) {
-        console.log("keine Farbe")
       }
       return color
     }
