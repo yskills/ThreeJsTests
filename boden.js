@@ -1,4 +1,4 @@
-import { PlaneGeometry, MeshLambertMaterial, Mesh, DoubleSide } from 'three';
+import { PlaneGeometry, MeshLambertMaterial, Mesh, DoubleSide, Vector3 } from 'three';
 
 export class Boden {
     constructor(sizeX, sizeY, subdivisionsX, subdivisionsY) {
@@ -42,7 +42,33 @@ export class Boden {
 
         return closestZ !== null ? closestZ : 0; // Return closest Z or default to 0 if not found
     }
+    getSurfaceNormal(x, y) {
+        // Example implementation to calculate the normal at (x, y)
+        // This should return a normalized Vector3 representing the normal at the height of the ground
 
+        const positionAttribute = this.geometry.attributes.position;
+        let normal = new Vector3(0, 0, 0);
+        let count = 0;
+
+        // Calculate normals based on adjacent vertices (could be further refined)
+        for (let i = 0; i < positionAttribute.count; i++) {
+            const px = positionAttribute.getX(i);
+            const py = positionAttribute.getY(i);
+            if (Math.abs(px - x) < 1 && Math.abs(py - y) < 1) {
+                const nx = positionAttribute.getX(i); // Placeholder for normal data
+                const ny = positionAttribute.getY(i); // Placeholder for normal data
+                const nz = positionAttribute.getZ(i); // Placeholder for normal data
+                normal.add(new Vector3(nx, ny, nz));
+                count++;
+            }
+        }
+
+        if (count > 0) {
+            normal.divideScalar(count).normalize(); // Average and normalize
+        }
+
+        return normal; // Should return a normalized Vector3
+    }
 
     addToScene(scene) {
         scene.add(this.mesh);  // Add the ground to the scene

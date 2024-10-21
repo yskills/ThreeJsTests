@@ -35,7 +35,7 @@ scene.add(box);
 
 // Place the cube on the ground using ObjectPlacer
 const placer = new ObjectPlacer(boden);
-placer.placeObject(box, 10, -10);  // Place the box at (10, 10)
+placer.placeObject(box, -10, 10);  // Place the box at (10, 10)
 
 // Render loop
 function animate() {
