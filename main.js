@@ -12,6 +12,11 @@ const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight,
 camera.position.set(30, 30, 50);
 camera.lookAt(0, 0, 0);
 
+//add  light
+const light = new DirectionalLight(0xffffff, 1);
+light.position.set(10, 10, 10).normalize();
+scene.add(light);
+
 // Set up the renderer
 const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -24,7 +29,7 @@ controls.dampingFactor = 0.25;
 controls.enableZoom = true;
 
 // Create the Boden (ground)
-const boden = new Boden(50, 50, 10, 10);  // Ground of size 50x50 with 10x10 subdivisions
+const boden = new Boden(50, 50, 200, 200);  // Ground of size 50x50 with 10x10 subdivisions
 boden.addToScene(scene);
 
 // Create a cube object
@@ -34,8 +39,8 @@ const box = new Mesh(boxGeometry, boxMaterial);
 scene.add(box);
 
 // Place the cube on the ground using ObjectPlacer
-const placer = new ObjectPlacer(boden);
-placer.placeObject(box, -10, 10);  // Place the box at (10, 10)
+const placer = new ObjectPlacer(boden,scene);
+placer.placeObject(box, 10, -10);  // Place the box at (10, 10)
 
 // Render loop
 function animate() {
