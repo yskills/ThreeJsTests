@@ -25,7 +25,7 @@ export class Boden {
         for (let i = 0; i < vertices.length; i += 3) {
             const x = vertices[i];
             const y = vertices[i + 1];
-            const z = Math.sin(x * 0.1) * Math.cos(y * 0.1) * 0;  // Example wave surface
+            const z = Math.sin(x * 0.1) * Math.cos(y * 0.1) * 10;  // Example wave surface
             vertices[i + 2] = z;  // Update Z value directly
         }
     }

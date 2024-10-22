@@ -29,7 +29,7 @@ controls.dampingFactor = 0.25;
 controls.enableZoom = true;
 
 // Create the Boden (ground)
-const boden = new Boden(50, 50, 200, 200);  // Ground of size 50x50 with 10x10 subdivisions
+const boden = new Boden(50, 50, 100, 100);  // Ground of size 50x50 with 10x10 subdivisions
 boden.addToScene(scene);
 
 // Create a cube object
