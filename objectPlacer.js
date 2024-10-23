@@ -66,7 +66,7 @@ export class ObjectPlacer {
     // Generate sample points across the bottom surface of the object
     getSamplePoints(x, y, halfWidth, halfDepth) {
         const samplePoints = [];
-        const sampleSpacing = 1;  // Adjust this for density of points
+        const sampleSpacing = 0.5;  // Adjust this for density of points
         for (let i = -halfWidth; i <= halfWidth; i += sampleSpacing) {
             for (let j = -halfDepth; j <= halfDepth; j += sampleSpacing) {
                 // Get height for each sample point based on Boden terrain
