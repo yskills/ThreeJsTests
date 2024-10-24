@@ -1,79 +1,128 @@
-import { Box3, Vector3, BufferGeometry, Line, LineBasicMaterial, Float32BufferAttribute, Mesh, MeshLambertMaterial, DoubleSide } from 'three';
-import Delaunator from 'delaunator';  // For Delaunay triangulation
-import { Points } from 'three';
-import { PointsMaterial } from 'three';
+import { Box3, Vector3, BufferGeometry, Line, LineBasicMaterial, Points, PointsMaterial, Mesh, MeshLambertMaterial } from 'three';
+import Delaunator from 'delaunator';  // For Delaunay triangulation if needed
+import { Matrix, EigenvalueDecomposition } from 'ml-matrix';  // Import ml-matrix for eigen decomposition
+import { Quaternion } from 'three';
 
 export class ObjectPlacer {
-    constructor(boden, scene) {
-        this.boden = boden;  // Boden instance for terrain height
-        this.scene = scene;  // js scene for visualization
-    }
+  constructor(boden, scene) {
+    this.boden = boden;  // Boden instance for terrain height
+    this.scene = scene;  // Scene for visualization
+  }
 
-    // Places the object at the given (x, y) and gathers sample points across its bottom surface
-    placeObject(object, x, y) {
-        // Set object position first (without adjustment)
-        object.position.set(x, object.position.y, y);
+  // Places the object at the given (x, y) on the terrain
+  placeObject(object, x, y) {
+    // Set initial object position
+    object.position.set(x, object.position.y, y);
 
-        // Get the bounding box of the object to calculate its size
-        const boundingBox = new Box3().setFromObject(object);
-        const size = new Vector3();
-        boundingBox.getSize(size);
+    // Get bounding box of the object to calculate size
+    const boundingBox = new Box3().setFromObject(object);
+    const size = new Vector3();
+    boundingBox.getSize(size);
 
-        const halfWidth = size.x / 2;
-        const halfDepth = size.z / 2;
+    const halfWidth = size.x / 2;
+    const halfDepth = size.z / 2;
 
-        // Get all the sample points across the bottom surface
-        const samplePoints = this.getSamplePoints(x, y, halfWidth, halfDepth);
+    // Collect sample points from the terrain
+    const samplePoints = this.getSamplePoints(x, y, halfWidth, halfDepth);
 
-        // Visualize the sample points
-        this.visualizeSamplePoints(samplePoints);
+    // Compute the best-fit plane for the sample points
+    const { normal, centroid } = this.computeBestFitPlane(samplePoints);
 
-        // Further height adjustments or calculations will follow (not done here yet)
-        // This can be added after visualizing.
-    }
+    // Align the object to the best-fit plane
+    this.alignObjectToPlane(object, normal, centroid);
 
-    // Visualizes the sample points using lines (connects them with lines for clarity)
-    visualizeSamplePoints(samplePoints) {
-        var geom = new BufferGeometry().setFromPoints(samplePoints);
-        var cloud = new Points(
-          geom,
-          new PointsMaterial({ color: 0x99ccff, size: 2 })
+    // Optionally, visualize the sample points
+    // this.visualizeSamplePoints(samplePoints);
+  }
+
+
+  // Computes the best-fit plane for a set of 3D points
+  computeBestFitPlane(samplePoints) {
+    // Compute the centroid (average position) of the points
+    let centroid = new Vector3();
+    samplePoints.forEach(point => centroid.add(point));
+    centroid.divideScalar(samplePoints.length); // Average the points
+
+    // Center the points around the centroid
+    const centeredPoints = samplePoints.map(point => point.clone().sub(centroid));
+
+    // Compute covariance matrix from centered points
+    let covarianceMatrix = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; // 3x3 matrix
+    centeredPoints.forEach(p => {
+      covarianceMatrix[0][0] += p.x * p.x;
+      covarianceMatrix[0][1] += p.x * p.y;
+      covarianceMatrix[0][2] += p.x * p.z;
+      covarianceMatrix[1][1] += p.y * p.y;
+      covarianceMatrix[1][2] += p.y * p.z;
+      covarianceMatrix[2][2] += p.z * p.z;
+    });
+    covarianceMatrix[1][0] = covarianceMatrix[0][1];
+    covarianceMatrix[2][0] = covarianceMatrix[0][2];
+    covarianceMatrix[2][1] = covarianceMatrix[1][2];
+
+    // Perform eigenvalue decomposition using ml-matrix
+    const matrix = new Matrix(covarianceMatrix);
+    var e = new EigenvalueDecomposition(matrix);
+    var realEigenValues = e.realEigenvalues;
+    var eigenVecotrs = e.eigenvectorMatrix.data;
+    // The normal to the plane is the eigenvector corresponding to the smallest eigenvalue
+    const minIndex = realEigenValues.indexOf(Math.min(...realEigenValues));
+    const normal = new Vector3(
+      eigenVecotrs[0][minIndex],
+      eigenVecotrs[1][minIndex],
+      eigenVecotrs[2][minIndex]
+    ).normalize();
+
+    return { normal, centroid };
+  }
+
+  // Aligns the object to the plane defined by the given normal and centroid
+  alignObjectToPlane(object, normal, centroid) {
+    // Object's original up vector
+    const upVector = new Vector3(0, 1, 0);
+
+    // Get the bounding box of the object to adjust its height properly
+    const boundingBox = new Box3().setFromObject(object);
+    const size = new Vector3();
+    boundingBox.getSize(size);
+
+    // Compute quaternion to rotate object up vector to align with plane normal
+    const quaternion = new Quaternion().setFromUnitVectors(upVector, normal);
+
+    // Apply the rotation to the object
+    object.quaternion.premultiply(quaternion);
+
+    // Calculate the offset to move the object along the normal
+    // Offset is calculated using the normal vector scaled by half the height of the object
+    const offset = normal.clone().normalize().multiplyScalar(size.y / 2);
+    // Set the object's position to the centroid plus the calculated offset
+    object.position.copy(centroid).add(offset);
+  }
+
+
+  // Visualize the sample points in the scene (optional)
+  visualizeSamplePoints(samplePoints) {
+    const geometry = new BufferGeometry().setFromPoints(samplePoints);
+    const points = new Points(geometry, new PointsMaterial({ color: 0x99ccff, size: 1 }));
+    this.scene.add(points);
+  }
+
+  // Generate sample points across the object's bottom surface based on terrain height
+  getSamplePoints(x, y, halfWidth, halfDepth) {
+    const samplePoints = [];
+    const sampleSpacing = 0.5;  // Adjust for density of sample points
+
+    for (let i = -halfWidth; i <= halfWidth; i += sampleSpacing) {
+      for (let j = -halfDepth; j <= halfDepth; j += sampleSpacing) {
+        const samplePoint = new Vector3(
+          x + i,
+          this.boden.getHeightAt(x + i, y + j),  // Query height from the Boden class
+          y + j
         );
-        // this.scene.add(cloud);
-        
-        // triangulate x, z
-        var indexDelaunay = Delaunator.from(
-          samplePoints.map(v => {
-            return [v.x, v.z];
-          })
-        );
-        
-        var meshIndex = []; // delaunay index => js index
-        for (let i = 0; i < indexDelaunay.triangles.length; i++){
-          meshIndex.push(indexDelaunay.triangles[i]);
-        }
-        
-        geom.setIndex(meshIndex); // add js index to the existing geometry
-        geom.computeVertexNormals();
-        var mesh = new Mesh(
-          geom, // re-use the existing geometry
-          new MeshLambertMaterial({ color: "green", wireframe: false })
-        );
-        this.scene.add(mesh);
-        
+        samplePoints.push(samplePoint);
+      }
     }
 
-    // Generate sample points across the bottom surface of the object
-    getSamplePoints(x, y, halfWidth, halfDepth) {
-        const samplePoints = [];
-        const sampleSpacing = 0.5;  // Adjust this for density of points
-        for (let i = -halfWidth; i <= halfWidth; i += sampleSpacing) {
-            for (let j = -halfDepth; j <= halfDepth; j += sampleSpacing) {
-                // Get height for each sample point based on Boden terrain
-                const samplePoint = new Vector3(x + i, this.boden.getHeightAt(x + i, y + j), y + j);
-                samplePoints.push(samplePoint);
-            }
-        }
-        return samplePoints;
-    }
+    return samplePoints;
+  }
 }

@@ -8,7 +8,7 @@ export class Boden {
         this.mesh = new Mesh(this.geometry, this.material);
 
         // Rotate the plane
-        this.mesh.rotation.x = Math.PI / 3;  // Set the ground horizontal
+        this.mesh.rotation.x = Math.PI / 2;  // Set the ground horizontal
 
         // Initialize the geometry with a simulated uneven surface
         this.updateSurface();
