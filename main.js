@@ -1,4 +1,4 @@
-import { Scene, Color, PerspectiveCamera, WebGLRenderer, BoxGeometry, MeshBasicMaterial, Mesh, DirectionalLight, Vector2, Raycaster, Vector3 } from 'three';
+import { Scene, Color, PerspectiveCamera, WebGLRenderer, BoxGeometry, MeshBasicMaterial, Mesh, DirectionalLight, Vector2, Raycaster, Vector3, CircleGeometry, SphereGeometry } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Boden } from './boden';
 import { ObjectPlacer } from './objectPlacer.js';
@@ -40,14 +40,14 @@ scene.add(box);
 
 // Place the cube on the ground using ObjectPlacer
 const placer = new ObjectPlacer(boden, scene);
-placer.placeObject(box, 9, -12);
+placer.placeObject(box, -1.4, 2);
 
-// Raycaster for detecting mouse clicks
+// Raycaster for detecting mouse clicks and intersections
 const raycaster = new Raycaster();
 const mouse = new Vector2();
 let isDragging = false;
 
-// Event listeners for mouse actions
+// Event listener for mouse down to check if cube is clicked
 window.addEventListener('mousedown', (event) => {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -57,30 +57,29 @@ window.addEventListener('mousedown', (event) => {
 
     if (intersects.length > 0) {
         isDragging = true; // Start dragging
-        controls.enabled = false; // Disable orbit controls
+        controls.enabled = false; // Disable orbit controls while dragging
     }
 });
 
-window.addEventListener('mouseup', () => {
-    isDragging = false; // Stop dragging
-    controls.enabled = true; // Re-enable orbit controls
-});
-
-window.addEventListener('mousemove', (event) => {
+// Event listener for mouse up to place the cube at the ground location
+window.addEventListener('mouseup', (event) => {
     if (isDragging) {
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-        // Create a raycaster for the Boden
         raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObject(boden.mesh); // Check against the ground
+        const intersectsGround = raycaster.intersectObject(boden.mesh); // Check against the ground
 
-        if (intersects.length > 0) {
-            const newPoint = intersects[0].point; // Get the new intersection point
-            placer.placeObject(box, newPoint.x, newPoint.z); // Update the cube's position based on new intersection
+        if (intersectsGround.length > 0) {
+            const newPoint = intersectsGround[0].point; // Get the intersection point on the ground
+            placer.placeObject(box, newPoint.x, newPoint.z); // Update cube's position
         }
+
+        isDragging = false; // Stop dragging
+        controls.enabled = true; // Re-enable orbit controls
     }
 });
+
 
 // Render loop
 function animate() {

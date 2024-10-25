@@ -7,10 +7,18 @@ export class ObjectPlacer {
   constructor(boden, scene) {
     this.boden = boden;  // Boden instance for terrain height
     this.scene = scene;  // Scene for visualization
+
+
+    // Store original rotation values (in radians)
+    this.originalRotation = new Vector3();  // Adjust based on your object's rotation type
   }
 
   // Places the object at the given (x, y) on the terrain
-  placeObject(object, x, y) {
+  async placeObject(object, x, y) {
+    //make object look up
+    // Reset rotation to original
+    object.rotation.set(this.originalRotation.x, this.originalRotation.y, this.originalRotation.z);
+
     // Set initial object position
     object.position.set(x, object.position.y, y);
 
@@ -23,25 +31,25 @@ export class ObjectPlacer {
     const halfDepth = size.z / 2;
 
     // Collect sample points from the terrain
-    const samplePoints = this.getSamplePoints(x, y, halfWidth, halfDepth);
+    const samplePoints = await this.getSamplePoints(x, y, halfWidth, halfDepth);
 
     // Compute the best-fit plane for the sample points
-    const { normal, centroid } = this.computeBestFitPlane(samplePoints);
+    const { normal, centroid } = await this.computeBestFitPlane(samplePoints);
 
     // Align the object to the best-fit plane
     this.alignObjectToPlane(object, normal, centroid);
 
     // Optionally, visualize the sample points
-    // this.visualizeSamplePoints(samplePoints);
+    this.visualizeSamplePoints(samplePoints);
   }
 
 
   // Computes the best-fit plane for a set of 3D points
-  computeBestFitPlane(samplePoints) {
+  async computeBestFitPlane(samplePoints) {
     // Compute the centroid (average position) of the points
     let centroid = new Vector3();
     samplePoints.forEach(point => centroid.add(point));
-    centroid.divideScalar(samplePoints.length); // Average the points
+    centroid.divideScalar(samplePoints.length);
 
     // Center the points around the centroid
     const centeredPoints = samplePoints.map(point => point.clone().sub(centroid));
@@ -64,17 +72,22 @@ export class ObjectPlacer {
     const matrix = new Matrix(covarianceMatrix);
     var e = new EigenvalueDecomposition(matrix);
     var realEigenValues = e.realEigenvalues;
-    var eigenVecotrs = e.eigenvectorMatrix.data;
-    // The normal to the plane is the eigenvector corresponding to the smallest eigenvalue
+    var eigenVectors = e.eigenvectorMatrix.data;
+
+    // Get the normal vector as the eigenvector with the smallest eigenvalue
     const minIndex = realEigenValues.indexOf(Math.min(...realEigenValues));
-    const normal = new Vector3(
-      eigenVecotrs[0][minIndex],
-      eigenVecotrs[1][minIndex],
-      eigenVecotrs[2][minIndex]
+    let normal = new Vector3(
+      eigenVectors[0][minIndex],
+      eigenVectors[1][minIndex],
+      eigenVectors[2][minIndex]
     ).normalize();
+
+    // Ensure normal points upwards by checking y-component
+    if (normal.y < 0) normal.negate();
 
     return { normal, centroid };
   }
+
 
   // Aligns the object to the plane defined by the given normal and centroid
   alignObjectToPlane(object, normal, centroid) {
@@ -108,7 +121,7 @@ export class ObjectPlacer {
   }
 
   // Generate sample points across the object's bottom surface based on terrain height
-  getSamplePoints(x, y, halfWidth, halfDepth) {
+  async getSamplePoints(x, y, halfWidth, halfDepth) {
     const samplePoints = [];
     const sampleSpacing = 0.5;  // Adjust for density of sample points
 
